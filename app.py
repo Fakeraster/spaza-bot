@@ -4,10 +4,10 @@ import os
 
 app = Flask(__name__)
 
-# Your credentials (we'll update these later)
+# Your credentials
 VERIFY_TOKEN = "SpazaToken123"
-WHATSAPP_TOKEN = "YOUR_WHATSAPP_TOKEN"
-PHONE_NUMBER_ID = "YOUR_PHONE_NUMBER_ID"
+WHATSAPP_TOKEN = "EAAZAe9D7yaiMBQcAo7cZB7NVU3IafOFXZAJmDFciNPHglfytZBO0sppLfJAxmD6XNrqVPGZCBQ9mZBdtlfiiLh1pQi7QSErYbYyw1AHI9JrnVh3xxecrdiIMZAFFA8ZC49AzZAdZBpYvd0abMzVvS9UmRFEX3Ty15Qlmox8FkOVZCRDlwSAFk1ZB9axezl3WQoFkO0rxh0jbpfWyTbwjtR5rf3ukyLdxZB5mZBLieUoFWUjqGP8MQqvB1qzeud8Y7lOyTGh1NEw6S25OZBsNlfYJEIYgATIacZC4I6ZCq48VBt6AOmegZD"
+PHONE_NUMBER_ID = "940433765813183"
 
 # Product catalog
 PRODUCTS = {
@@ -20,7 +20,7 @@ PRODUCTS = {
     "oil": {"name": "🛢️ Cooking Oil", "price": 35}
 }
 
-# Store orders (simple in-memory storage)
+# Store orders
 orders = {}
 
 # Webhook verification
@@ -105,7 +105,6 @@ def send_menu(sender):
         "Content-Type": "application/json"
     }
     
-    # Build product list
     product_text = "🛒 *Spaza II Spaza Menu*\n\n"
     for key, item in PRODUCTS.items():
         product_text += f"{item['name']} - R{item['price']}\n"
