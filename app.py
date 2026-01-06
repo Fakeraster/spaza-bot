@@ -1,27 +1,13 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request
 import requests
 import os
 
 app = Flask(__name__)
 
-# Your credentials - UPDATED
+# Your credentials
 VERIFY_TOKEN = "SpazaToken123"
-WHATSAPP_TOKEN = "EAAPJ7hv5wzMBQSHNPzhvpiOEQzw38P2ZA5WSqZCuPBLTsvgqq9rlVSbnso9vZAi6AWLd7ZC5BX8DbvyGKoUfYRdWCUX4L5035bNPGohkvhC1vQfrlQbwB4fozFrXRR0pSC8X2WJIvQxUz5nWLhb7uB6M7BwwJLXC24dqCN3B9zjOaTReZCtYZC1HziFkhf067beAKFJtXM3LVC2EDap8YT80dUb6zyKr96TsifEZB1MXvV2o2Li5pzNSh0icnkSIn7Eh4eEJxbINgugaPsPWZBScZCwfhwZBlzrd9RdwZAxtwZDZD"
+WHATSAPP_TOKEN = "EAATr7dGXzn0BQWq54D1920cSiyUze4Aa1zLVrFZCcEHawfQKJF7wHC2PMOs6dPZCdVdNfZAXkUVbBShELZBZCdDeLDwBpFY0j9NV2NU2XvTfBprZBixZC2d9WXhaIUvPKplhqZB0bSV4GXuK7rKbihIZC9OpZCFaaZBkPZAlaUxcNsrBPtPXxSMKMNRFaMveYAYMfpxJpvUoW8bg3LoxKulMxACySp9mL2wftIubissH5Rl5"
 PHONE_NUMBER_ID = "940433765813183"
-
-# Product catalog
-PRODUCTS = {
-    "bread": {"name": "🍞 Bread", "price": 25},
-    "milk": {"name": "🥛 Milk", "price": 30},
-    "sugar": {"name": "🍬 Sugar", "price": 40},
-    "rice": {"name": "🍚 Rice", "price": 45},
-    "eggs": {"name": "🥚 Eggs", "price": 28},
-    "maize": {"name": "🌽 Maize Meal", "price": 55},
-    "oil": {"name": "🛢️ Cooking Oil", "price": 35}
-}
-
-# Store orders
-orders = {}
 
 # Webhook verification
 @app.route('/webhook', methods=['GET'])
@@ -50,160 +36,17 @@ def webhook():
             
             if message['type'] == 'text':
                 text = message['text']['body'].lower().strip()
-                handle_message(sender, text)
-            
-            elif message['type'] == 'interactive':
-                handle_interactive(sender, message['interactive'])
+                print(f"📱 Message from {sender}: {text}")
+                
+                # Send reply
+                send_message(sender, f"👋 Hello! You said: {text}\n\nWelcome to Spaza II Spaza!")
     
     except Exception as e:
         print(f"❌ Error: {e}")
     
     return 'OK', 200
 
-# Handle text messages
-def handle_message(sender, text):
-    if text in ['hi', 'hello', 'menu', 'order']:
-        send_menu(sender)
-    elif text == 'help':
-        send_help(sender)
-    elif text == 'status':
-        send_status(sender)
-    else:
-        send_welcome(sender)
-
-# Send welcome message
-def send_welcome(sender):
-    message = """👋 Welcome to *Spaza II Spaza*!
-
-🛒 Your neighborhood shop on WhatsApp!
-
-Type *menu* to see our products
-Type *help* for assistance"""
-    
-    send_message(sender, message)
-
-# Send help
-def send_help(sender):
-    message = """🆘 *Spaza II Spaza Help*
-
-Commands:
-• *menu* - View products
-• *order* - Start ordering
-• *status* - Check order status
-• *help* - Show this message
-
-Need help? Just reply!"""
-    
-    send_message(sender, message)
-
-# Send product menu with buttons
-def send_menu(sender):
-    url = f"https://graph.facebook.com/v18.0/{PHONE_NUMBER_ID}/messages"
-    
-    headers = {
-        "Authorization": f"Bearer {WHATSAPP_TOKEN}",
-        "Content-Type": "application/json"
-    }
-    
-    product_text = "🛒 *Spaza II Spaza Menu*\n\n"
-    for key, item in PRODUCTS.items():
-        product_text += f"{item['name']} - R{item['price']}\n"
-    product_text += "\n👇 Select a product below:"
-    
-    payload = {
-        "messaging_product": "whatsapp",
-        "to": sender,
-        "type": "interactive",
-        "interactive": {
-            "type": "list",
-            "header": {
-                "type": "text",
-                "text": "🏪 Spaza II Spaza"
-            },
-            "body": {
-                "text": product_text
-            },
-            "footer": {
-                "text": "Free delivery over R100!"
-            },
-            "action": {
-                "button": "View Products",
-                "sections": [
-                    {
-                        "title": "Products",
-                        "rows": [
-                            {"id": "bread", "title": "🍞 Bread", "description": "R25"},
-                            {"id": "milk", "title": "🥛 Milk", "description": "R30"},
-                            {"id": "sugar", "title": "🍬 Sugar", "description": "R40"},
-                            {"id": "rice", "title": "🍚 Rice", "description": "R45"},
-                            {"id": "eggs", "title": "🥚 Eggs", "description": "R28"},
-                            {"id": "maize", "title": "🌽 Maize Meal", "description": "R55"},
-                            {"id": "oil", "title": "🛢️ Cooking Oil", "description": "R35"}
-                        ]
-                    }
-                ]
-            }
-        }
-    }
-    
-    response = requests.post(url, headers=headers, json=payload)
-    print(f"📤 Menu sent: {response.status_code}")
-
-# Handle button/list selections
-def handle_interactive(sender, interactive):
-    if interactive['type'] == 'list_reply':
-        selected = interactive['list_reply']['id']
-        product = PRODUCTS.get(selected)
-        
-        if product:
-            send_quantity_options(sender, selected, product)
-
-# Ask for quantity
-def send_quantity_options(sender, product_id, product):
-    url = f"https://graph.facebook.com/v18.0/{PHONE_NUMBER_ID}/messages"
-    
-    headers = {
-        "Authorization": f"Bearer {WHATSAPP_TOKEN}",
-        "Content-Type": "application/json"
-    }
-    
-    payload = {
-        "messaging_product": "whatsapp",
-        "to": sender,
-        "type": "interactive",
-        "interactive": {
-            "type": "button",
-            "body": {
-                "text": f"You selected: {product['name']}\nPrice: R{product['price']} each\n\nHow many do you want?"
-            },
-            "action": {
-                "buttons": [
-                    {"type": "reply", "reply": {"id": f"{product_id}_1", "title": "1"}},
-                    {"type": "reply", "reply": {"id": f"{product_id}_2", "title": "2"}},
-                    {"type": "reply", "reply": {"id": f"{product_id}_3", "title": "3"}}
-                ]
-            }
-        }
-    }
-    
-    response = requests.post(url, headers=headers, json=payload)
-    print(f"📤 Quantity options sent: {response.status_code}")
-
-# Send order status
-def send_status(sender):
-    if sender in orders:
-        order = orders[sender]
-        message = f"""📦 *Your Order Status*
-
-🧾 Order ID: {order['id']}
-📊 Status: {order['status']}
-💰 Total: R{order['total']}"""
-    else:
-        message = "❌ No orders found.\n\nType *menu* to place an order!"
-    
-    send_message(sender, message)
-
-# Send simple text message
+# Send message function
 def send_message(to, message):
     url = f"https://graph.facebook.com/v18.0/{PHONE_NUMBER_ID}/messages"
     
@@ -220,7 +63,8 @@ def send_message(to, message):
     }
     
     response = requests.post(url, headers=headers, json=payload)
-    print(f"📤 Message sent: {response.status_code}")
+    print(f"📤 Message sent: {response.status_code} - {response.text}")
+    return response
 
 # Home page
 @app.route('/')
